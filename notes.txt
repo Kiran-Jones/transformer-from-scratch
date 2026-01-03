@@ -1,0 +1,71 @@
+Model Architecture
+
+Encoder
+- 6 identical layers
+- Each layer has two sub-layers
+- first multi-head self-attention
+- second simple, positionwise fully connected feed-forward network
+- residual connection around each two sub-layers followed by layer normalization
+- output LayerNorm(x + Sublayer(x)), with Sublayer(x) being the sublayer implementation
+- model uses embedding dimension d_model = 512
+
+Decoder
+- 6 identical layers
+- Two sub-layers from encoder plus a third multi-head attention over the output of the encoder stack
+- Like encoder, residual connections around each sub-layer followed by normalization
+- Modify the self-attention sublayer to prevent positions from attending to subsequent positions
+- predictions for position i only depend on known outputs at positions less than i
+
+Attention
+- Mapping a query and a set of key-value pairs to an output, where query, keys, values, and output are all vectors
+- Output is a weighted sum of the values, where the weight is assigned by a compatability function of the query with the cooresponding key
+
+Scaled Dot-Product Attention
+- Input of queries and keys (dim d_k) and values (dim d_v) 
+- Compute dot products of query with all keys, divide each by sqrt(d_k), and apply softmax to obtain weights on the values
+- In practice, a matrix is used giving: Attention(Q, K, V) = softmax(Q*K^T / sqrt(d_k))*V (Q, K, V matricies with * denoting matrix multiplication)
+- Both additive and multiplicative attention can be used, multiplicative is more effecient generally
+
+Multi-Head Attention
+- Linearly project the queries, keys, and values h times with different, learned projections to d_k, d_k, and d_v dimisions, respectively
+- Then perform attention in parallel, yielding d_v diminsional output, concatonate and project giving the final values
+- Given by: MultiHead(Q, K, V) = Concat(head_1, ..., head_h)*W^O
+- where head_i = Attention(Q*(W_i)^Q, K*(W_i)^K, V*(W_i)^V)
+- and the projections are parameter matricies such that 
+    - (W_i)^Q \in R^(d_model x d_k)
+    - (W_i)^K \in R^(d_model x d_k)
+    - (W_i)^V \in R^(d_model x d_v)
+    - W^O \in R^(h * d_v x d_model)
+- h = 8 parallel attention layers is used, with d_k = d_v = d_model / h = 64
+
+Position-wise Feed-Forward Networks
+- Two linear transformations with a ReLu in between: FFN(x) = max(0, xW_1 + b_1)*W_2 + b_2
+- d_model = 512, d_ff = 2048 (inner layer)
+
+Embeddings and softmax
+- Use learned embeddings to convert input tokens and output tokens to vectors of d_model
+- Use learned linear transformation and softmax to convert decoder output to predicted next-token probabiltiies
+
+Positional Encoding
+- Add "positional encodings" to the input embeddings at the bottoms of the encoder and decoder stacks
+- uses dim d_model
+- PE_(pos, 2i) = sin(pos / 10000^(2i / d_model))
+- PE_(pos, 2i+1) = cos(pos / 10000^(2i / d_model))
+- where pos is the position and i is the dimension
+
+Training
+
+Optimizer
+- Adam with B_1 = 0.9, B_2 = 0.98, e = 10e-9
+- Varied lr using lr = (d_model)^-0.5 * min(step_num^-0.5, step_num * warmup_steps^-1.5), warmup_steps = 4000
+
+Regularization
+- Residual Dropout
+    - Dropout is applied to each output of the sub-layer before it is added to the sub-layer input and normalized
+    - also applied to the sums of the embeddings and the positional encodings in both encoder and decoder
+    - P_drop = 0.1
+
+- Label Smoothing
+    - e_ls = 0.1
+
+
