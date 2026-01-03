@@ -5,6 +5,7 @@ from embedding import Embedding
 from encoder import Encoder
 from decoder import Decoder
 from linear import Linear
+from dropout import Dropout
 
 from pe import positional_encoding
 from utils import softmax
@@ -24,24 +25,28 @@ class Transformer:
         self.encoder = Encoder(d_model, num_heads, d_ff, num_layers)
         self.decoder = Decoder(d_model, num_heads, d_ff, num_layers)
 
+        self.dropout = Dropout()
+
         self.output_projection = Linear(d_model, vocab_size)
         self.output_projection.weight = self.embedding.weight
 
 
-    def forward(self, src_tokens, tgt_tokens):
+    def forward(self, src_tokens, tgt_tokens, training=True):
         # 1. encoder path
         src_embedding = self.embedding.forward(src_tokens)
         src_pos_enc = positional_encoding(src_tokens.shape[1], self.d_model)
 
         encoder_input = src_embedding * np.sqrt(self.d_model) + src_pos_enc
-        encoder_output = self.encoder.forward(encoder_input)
+        encoder_input = self.dropout.forward(encoder_input, training)
+        encoder_output = self.encoder.forward(encoder_input, training)
     
         # 2. decoder path using encoder output
         tgt_embedding = self.embedding.forward(tgt_tokens)
         tgt_pos_enc = positional_encoding(tgt_tokens.shape[1], self.d_model)
 
         decoder_input = tgt_embedding * np.sqrt(self.d_model) + tgt_pos_enc
-        decoder_output = self.decoder.forward(decoder_input, encoder_output)
+        decoder_input = self.dropout.forward(decoder_input, training)
+        decoder_output = self.decoder.forward(decoder_input, encoder_output, training)
 
         # 3. output projection
         logits = self.output_projection.forward(decoder_output)

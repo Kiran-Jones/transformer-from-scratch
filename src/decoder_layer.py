@@ -3,6 +3,7 @@
 from mha import MultiHeadedAttention
 from ff_network import FeedForward
 from layer_norm import LayerNorm
+from dropout import Dropout
 
 import numpy as np
 
@@ -24,7 +25,19 @@ class DecoderLayer:
         self.ln2 = LayerNorm(d_model)
         self.ln3 = LayerNorm(d_model)
 
-    def forward(self, x, encoder_output, src_mask=None, tgt_mask=None):
-        x = self.ln1.forward(x + self.self_attn.forward(x, x, x, mask=tgt_mask))
-        x = self.ln2.forward(x + self.cross_attn.forward(x, encoder_output, encoder_output, mask=src_mask))
-        return self.ln3.forward(x + self.ff.forward(x))
+        self.dropout = Dropout()
+
+    def forward(self, x, encoder_output, src_mask=None, tgt_mask=None, training=True):
+        self_attn_out = self.self_attn.forward(x, x, x, mask=tgt_mask)
+        self_attn_out = self.dropout.forward(self_attn_out, training)
+        x = self.ln1.forward(x + self_attn_out)
+
+        cross_attn_out = self.cross_attn.forward(x, encoder_output, encoder_output, mask=src_mask)
+        cross_attn_out = self.dropout.forward(cross_attn_out, training)
+        x = self.ln2.forward(x + cross_attn_out)
+
+        ff_out = self.ff.forward(x)
+        ff_out = self.dropout.forward(ff_out, training)
+        x = self.ln3.forward(x + ff_out)
+
+        return x

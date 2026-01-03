@@ -1,6 +1,6 @@
 
 from encoder_layer import EncoderLayer
-
+from dropout import Dropout
 
 
 class Encoder:
@@ -15,6 +15,8 @@ class Encoder:
 
         for _ in range(num_layers):
             self.layers.append(EncoderLayer(d_model, num_heads, d_ff))
+
+        self.dropout = Dropout()
             
         
     def forward(self, x, mask=None):
