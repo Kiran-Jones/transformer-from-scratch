@@ -1,2 +1,15 @@
+# venv and cache files
 .venv
 __pycache__
+
+
+# saved model and data files
+*.json
+*.pkl
+*.txt
+
+# data 
+src/data
+
+# gradio
+.gradio
