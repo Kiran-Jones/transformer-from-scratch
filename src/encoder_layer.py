@@ -22,14 +22,41 @@ class EncoderLayer:
         self.ln1 = LayerNorm(d_model)
         self.ln2 = LayerNorm(d_model)
 
-        self.dropout = Dropout()
-        
-    def forward(self, x, mask=None):
-        attn_out = self.self_attn.forward(x, x, x)
-        attn_out = self.dropout.forward(attn_out)
-        x = self.ln1.forward(x + attn_out)
+        self.dropout1 = Dropout()
+        self.dropout2 = Dropout()       
 
-        ff_out = self.ff.forward(x)
-        ff_out = self.dropout.forward(ff_out)
-        x = self.ln2.forward(x + ff_out)
-        return x
+    def forward(self, x, mask=None, training=True):
+        
+        attn_out = self.self_attn.forward(x, x, x, mask)
+        attn_out = self.dropout1.forward(attn_out, training)
+        x_after_attn = self.ln1.forward(x + attn_out)
+
+        ff_out = self.ff.forward(x_after_attn)
+        ff_out = self.dropout2.forward(ff_out, training)
+
+        x_out = self.ln2.forward(x_after_attn + ff_out)
+        return x_out
+    
+    def backward(self, grad_output):
+        grad_norm2 = self.ln2.backward(grad_output)
+
+        grad_ff_path = grad_norm2
+        grad_bypass_ff = grad_norm2
+
+        grad_ff_out = self.dropout2.backward(grad_ff_path)
+        grad_ff = self.ff.backward(grad_ff_out)
+
+        grad_x_after_attn = grad_ff + grad_bypass_ff
+
+        grad_norm1 = self.ln1.backward(grad_x_after_attn)
+        
+        grad_mha_path = grad_norm1
+        grad_bypass_mha = grad_norm1
+
+        grad_mha_out = self.dropout1.backward(grad_mha_path)
+
+        dq, dk, dv = self.self_attn.backward(grad_mha_out)
+
+        grad_input = dq + dk + dv + grad_bypass_mha
+
+        return grad_input

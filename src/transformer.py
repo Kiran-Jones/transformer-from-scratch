@@ -1,98 +1,99 @@
-
-
-
+import numpy as np
 from embedding import Embedding
 from encoder import Encoder
 from decoder import Decoder
 from linear import Linear
 from dropout import Dropout
-
 from pe import positional_encoding
-from utils import softmax
-import numpy as np
+from masks import create_padding_mask, create_look_ahead_mask
+
+def create_padding_mask(seq, pad_id=0):
+    # 1 = keep, 0 = mask (pad)
+    seq = seq != pad_id
+    return seq[:, np.newaxis, np.newaxis, :]
+
+def create_look_ahead_mask(size):
+    # 1 = keep (lower triangle), 0 = mask (future positions)
+    mask = np.tril(np.ones((size, size)))
+    return mask 
 
 class Transformer:
-
-    def __init__(self, vocab_size, d_model=512, num_heads=8, d_ff=2048, num_layers=6):
-        
-        self.vocab_size = vocab_size
+    def __init__(self, vocab_size, d_model=512, num_heads=8, d_ff=2048, num_layers=6, pad_id=0):
         self.d_model = d_model
-        self.num_heads = num_heads
-        self.num_layers = num_layers
-
+        self.pad_id = pad_id
+        
         self.embedding = Embedding(vocab_size, d_model)
-
+        
+        self.pe_func = positional_encoding
+        
+        self.encoder_dropout = Dropout()
+        self.decoder_dropout = Dropout()
+        
         self.encoder = Encoder(d_model, num_heads, d_ff, num_layers)
         self.decoder = Decoder(d_model, num_heads, d_ff, num_layers)
-
-        self.dropout = Dropout()
-
+        
         self.output_projection = Linear(d_model, vocab_size)
-        self.output_projection.weight = self.embedding.weight
-
-
-    def forward(self, src_tokens, tgt_tokens, training=True):
-        # 1. encoder path
-        src_embedding = self.embedding.forward(src_tokens)
-        src_pos_enc = positional_encoding(src_tokens.shape[1], self.d_model)
-
-        encoder_input = src_embedding * np.sqrt(self.d_model) + src_pos_enc
-        encoder_input = self.dropout.forward(encoder_input, training)
-        encoder_output = self.encoder.forward(encoder_input, training)
-    
-        # 2. decoder path using encoder output
-        tgt_embedding = self.embedding.forward(tgt_tokens)
-        tgt_pos_enc = positional_encoding(tgt_tokens.shape[1], self.d_model)
-
-        decoder_input = tgt_embedding * np.sqrt(self.d_model) + tgt_pos_enc
-        decoder_input = self.dropout.forward(decoder_input, training)
-        decoder_output = self.decoder.forward(decoder_input, encoder_output, training)
-
-        # 3. output projection
+        
+        
+    def forward(self, src_tokens, tgt_tokens, training=True, mask=None):
+        self.src_tokens = src_tokens
+        self.tgt_tokens = tgt_tokens
+        
+        # Mask
+        src_mask = create_padding_mask(src_tokens, pad_id=self.pad_id)
+        
+        tgt_len = tgt_tokens.shape[1]
+        look_ahead = create_look_ahead_mask(tgt_len)
+        tgt_pad = create_padding_mask(tgt_tokens, pad_id=self.pad_id)
+        tgt_mask = tgt_pad * look_ahead
+        
+        # Encoder
+        src_emb = self.embedding.forward(src_tokens) * np.sqrt(self.d_model)
+        
+        self.src_embedded = src_emb + self.pe_func(src_tokens.shape[1], self.d_model)
+        
+        encoder_input = self.encoder_dropout.forward(self.src_embedded, training)
+        
+        encoder_output = self.encoder.forward(encoder_input, src_mask, training)
+        
+        # Decoder
+        tgt_emb = self.embedding.forward(tgt_tokens) * np.sqrt(self.d_model)
+        
+        self.tgt_embedded = tgt_emb + self.pe_func(tgt_tokens.shape[1], self.d_model)
+        
+        decoder_input = self.decoder_dropout.forward(self.tgt_embedded, training)
+        
+        decoder_output = self.decoder.forward(decoder_input, encoder_output, src_mask, tgt_mask, training)
+        
         logits = self.output_projection.forward(decoder_output)
-
+        
         return logits
 
+    def backward(self, grad_logits):
+        """
+        Orchestrates the full backprop from Logits -> Embeddings
+        """
+        grad_decoder_output = self.output_projection.backward(grad_logits)
+        
+        grad_decoder_input, grad_encoder_output = self.decoder.backward(grad_decoder_output)
+        
+        grad_tgt_embedded = self.decoder_dropout.backward(grad_decoder_input)
 
-if __name__ == "__main__":
-
-    # config
-    vocab_size = 100
-    d_model = 64 
-    num_heads = 4
-    d_ff = 128
-    num_layers = 2
-
+        self.embedding.backward(grad_tgt_embedded, token_ids=self.tgt_tokens)
+        
+        grad_encoder_input = self.encoder.backward(grad_encoder_output)
+        
+        grad_src_embedded = self.encoder_dropout.backward(grad_encoder_input)
+        
+        self.embedding.backward(grad_src_embedded, token_ids=self.src_tokens)
+        
+        return None
     
-    transformer = Transformer(
-        vocab_size=vocab_size,
-        d_model=d_model,
-        num_heads=num_heads,
-        d_ff=d_ff,
-        num_layers=num_layers
-    )
-
-    # test data
-    batch_size = 2
-    src_len = 5
-    tgt_len = 4
-
-    # random token IDs
-    src_tokens = np.random.randint(0, vocab_size, size=(batch_size, src_len))
-    tgt_tokens = np.random.randint(0, vocab_size, size=(batch_size, tgt_len))
-
-    print("Source tokens shape:", src_tokens.shape) 
-    print("Target tokens shape:", tgt_tokens.shape) 
-
-    # forward pass
-    logits = transformer.forward(src_tokens, tgt_tokens)
-
-    print("Output logits shape:", logits.shape)  
-    print("Logits range:", logits.min(), "to", logits.max())
-
-    # sanity checks
-    assert logits.shape == (batch_size, tgt_len, vocab_size), "Wrong output shape!"
-    assert not np.isnan(logits).any(), "NaN in output!"
-    assert not np.isinf(logits).any(), "Inf in output!"
-
-    print("Forward pass completed!")
+    def make_src_mask(self, src):
+        return create_padding_mask(src, pad_id=self.pad_id)
+    
+    def make_tgt_mask(self, tgt):
+        look_ahead_mask = create_look_ahead_mask(tgt.shape[1])
+        dec_target_padding_mask = create_padding_mask(tgt, pad_id=self.pad_id)
+        combined_mask = dec_target_padding_mask * look_ahead_mask
+        return combined_mask
