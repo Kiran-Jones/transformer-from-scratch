@@ -361,6 +361,19 @@ def create_demo(generator):
 
     return demo
 
+def build_demo(
+    model_path="seq2seq_model.pkl",
+    vocab_encoder_path="src/vocab_encoder.json",
+    vocab_merges_path="src/vocab_merges.json",
+):
+    print("Loading model and tokenizer...")
+    model, tokenizer = load_model_and_tokenizer(model_path, vocab_encoder_path, vocab_merges_path)
+    generator = Generator(model, tokenizer)
+    print("Model loaded successfully!")
+    return create_demo(generator)
+
+demo = build_demo()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Launch Gradio demo for attention visualization")
@@ -376,17 +389,8 @@ def main():
                         help="Port to run the server on (default: 7860)")
     args = parser.parse_args()
 
-    print("Loading model and tokenizer...")
-    model, tokenizer = load_model_and_tokenizer(
-        args.model, args.vocab_encoder, args.vocab_merges
-    )
-
-    generator = Generator(model, tokenizer)
-    print("Model loaded successfully!")
-
-    print("Launching Gradio demo...")
-    demo = create_demo(generator)
-    demo.launch(share=True, server_port=args.port)
+    demo = build_demo(args.model, args.vocab_encoder, args.vocab_merges)
+    demo.launch(share=args.share, server_port=args.port)
 
 
 if __name__ == "__main__":
