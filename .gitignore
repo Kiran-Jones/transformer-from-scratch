@@ -4,9 +4,8 @@ __pycache__
 
 
 # saved model and data files
-*.json
 *.pkl
-*.txt
+
 
 # data 
 src/data
