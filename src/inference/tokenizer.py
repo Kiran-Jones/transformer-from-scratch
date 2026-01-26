@@ -45,21 +45,18 @@ class Tokenizer:
             token_str = self.decoder.get(token, '')
 
             if token_str in self.special_tokens:
-                # Flush accumulated bytes before appending special token
                 if byte_array:
                     text_buffer.append(byte_array.decode('utf-8', errors='replace'))
                     byte_array = bytearray()
                 text_buffer.append(token_str)
             else:
-                # Accumulate bytes across tokens so multi-byte UTF-8
-                # characters split across BPE tokens decode correctly
+
                 for c in token_str:
                     if c in self.byte_decoder:
                         byte_array.append(self.byte_decoder[c])
                     else:
                         byte_array.extend(c.encode('utf-8'))
 
-        # Flush remaining bytes
         if byte_array:
             text_buffer.append(byte_array.decode('utf-8', errors='replace'))
 
@@ -135,50 +132,11 @@ class Tokenizer:
         
         with open(encoder_path, 'r', encoding='utf-8') as f:
             encoder = json.load(f)
-            # JSON keys are always strings, but our logic handles that fine.
-            # However, JSON converts integer keys to strings, but here keys are tokens (strings),
-            # and values are IDs (ints). So simple load is fine.
+
             
         with open(merges_path, 'r', encoding='utf-8') as f:
             merges_list = json.load(f)
-            # Convert list back to tuples and reconstruct dictionary with ranks
             merges = {tuple(pair): i for i, pair in enumerate(merges_list)}
             
         return cls(encoder=encoder, merges=merges)
     
-
-
-if __name__ == "__main__":
-    # 1. Setup minimal dummy vocab and merges for demonstration
-    # In reality, 'encoder' is large and 'merges' is a list of tuples like ('u', 'n')
-    
-    # Let's say our Byte Encoder mapped 'h'->'h', 'e'->'e', etc.
-    # We want to merge 'h' and 'e' -> 'he'
-    dummy_merges = {
-        ('h', 'e'): 1,
-        ('l', 'l'): 2,
-        ('he', 'll'): 3,
-        ('hell', 'o'): 4
-    }
-    
-    # The encoder maps the resulting strings to Integer IDs
-    dummy_encoder = {
-        'h': 1, 'e': 2, 'l': 3, 'o': 4, 
-        'he': 5, 'll': 6, 'hell': 7, 'hello': 8
-    }
-
-    tokenizer = Tokenizer(encoder=dummy_encoder, merges=dummy_merges)
-
-    input_text = "hello"
-    
-    # Note: This will only work perfectly if the 'bytes_to_unicode' mapping 
-    # aligns with the dummy data, but this demonstrates the flow.
-    print(f"Input: {input_text}")
-    
-    # Running BPE...
-    # Tokens might be broken down based on what is in dummy_merges
-    encoded = tokenizer.encode(input_text)
-    print(f"Encoded IDs: {encoded}")
-    
-    decoded = tokenizer.decode(encoded)
-    print(f"Decoded: {decoded}")
