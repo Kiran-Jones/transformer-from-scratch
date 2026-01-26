@@ -362,7 +362,7 @@ def create_demo(generator):
     return demo
 
 def build_demo(
-    model_path="seq2seq_model.pkl",
+    model_path="models/seq2seq_model.pkl",
     vocab_encoder_path="src/data/vocab_encoder.json",
     vocab_merges_path="src/data/vocab_merges.json",
 ):
@@ -377,8 +377,8 @@ demo = build_demo()
 
 def main():
     parser = argparse.ArgumentParser(description="Launch Gradio demo for attention visualization")
-    parser.add_argument("-m", "--model", default="seq2seq_model.pkl",
-                        help="Path to model weights file (default: seq2seq_model.pkl)")
+    parser.add_argument("-m", "--model", default="models/seq2seq_model.pkl",
+                        help="Path to model weights file (default: models/seq2seq_model.pkl)")
     parser.add_argument("--vocab-encoder", default="src/data/vocab_encoder.json",
                         help="Path to vocab encoder JSON (default: src/data/vocab_encoder.json)")
     parser.add_argument("--vocab-merges", default="src/data/vocab_merges.json",
