@@ -8,7 +8,7 @@ __pycache__
 
 
 # data 
-src/data
+*tsv
 
 # gradio
 .gradio

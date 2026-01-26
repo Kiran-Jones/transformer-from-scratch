@@ -2,16 +2,25 @@
 
 A complete implementation of the Transformer architecture (Vaswani et al., 2017) built using only Python/NumPy. As a proof of concept, the project also contains a pretrained English-to-Spanish translation model, which is deployed on [Hugging Face](https://huggingface.co/spaces/KiranJones/transformer-from-scratch) with attention visualization.
 
-The trained model performs adequately, achieving a ~30 sacreBLEU score. While not optimized for maximum performance, the project is intended as a learning and reference implementation, with an emphasis on clarity and inspectability over performance.
+The trained model performs adequately, achieving a ~30 sacreBLEU score. While not optimized for maximum performance, it is intended as a learning and reference implementation, with an emphasis on clarity and inspectability over performance.
 
 ## Project Structure
 
 ```
-src/
-├── model/          # Transformer architecture
-├── inference/      # Tokenization and decoding
-├── training/       # Training and evaluation utilities
-└── visualize.py    # Gradio-based attention demo
+├── README.md
+├── app.py            # Gradio app entry point
+├── models/           # Model checkpoints
+├── pyproject.toml
+├── src/
+│   ├── data/         # Tokenizer assets (BPE vocab)
+│   │   ├── vocab_encoder.json
+│   │   └── vocab_merges.json
+│   ├── inference/    # Tokenization and decoding
+│   ├── model/        # Transformer architecture
+│   ├── training/     # Training and evaluation utilities
+│   ├── visualize.py  # Attention visualization logic
+├── tests/            # Unit tests
+└── uv.lock
 ```
 
 ## Overview
@@ -63,7 +72,9 @@ uv run python src/visualize.py -m seq2seq_model.pkl
 ```
 The demo can be run locally or accessed via the hosted [Hugging Face Space](https://huggingface.co/spaces/KiranJones/transformer-from-scratch).
 
+
 #### Attention Visualization Modes
+
 - **Single View**: One layer and head with summary statistics
 - **All Heads**: All heads for a selected layer
 - **All Layers**: A single head across all layers

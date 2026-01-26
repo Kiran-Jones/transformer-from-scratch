@@ -68,12 +68,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train a seq2seq Transformer for translation")
     parser.add_argument("-i", "--input", nargs="+", required=True,
                         help="Input TSV file(s) with parallel sentences")
-    parser.add_argument("--vocab-encoder", default="src/vocab_encoder.json",
-                        help="Path to vocab encoder JSON (default: src/vocab_encoder.json)")
-    parser.add_argument("--vocab-merges", default="src/vocab_merges.json",
-                        help="Path to vocab merges JSON (default: src/vocab_merges.json)")
-    parser.add_argument("-o", "--output", default="seq2seq_model.pkl",
-                        help="Output model weights path (default: seq2seq_model.pkl)")
+    parser.add_argument("--vocab-encoder", default="src/data/vocab_encoder.json",
+                        help="Path to vocab encoder JSON (default: src/data/vocab_encoder.json)")
+    parser.add_argument("--vocab-merges", default="src/data/vocab_merges.json",
+                        help="Path to vocab merges JSON (default: src/data/vocab_merges.json)")
+    parser.add_argument("-o", "--output", default="models/seq2seq_model.pkl",
+                        help="Output model weights path (default: models/seq2seq_model.pkl)")
     parser.add_argument("--steps", type=int, default=500,
                         help="Number of training steps (default: 500)")
     parser.add_argument("--batch-size", type=int, default=8,

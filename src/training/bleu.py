@@ -88,10 +88,10 @@ def main():
                     help="Path to model weights file (default: seq2seq_model.pkl)")
     ap.add_argument("--max-len", type=int, default=200,
                     help="Max generation length (default: 200)")
-    ap.add_argument("--vocab-encoder", default="src/vocab_encoder.json",
-                    help="Path to vocab encoder JSON (default: src/vocab_encoder.json)")
-    ap.add_argument("--vocab-merges", default="src/vocab_merges.json",
-                    help="Path to vocab merges JSON (default: src/vocab_merges.json)")
+    ap.add_argument("--vocab-encoder", default="src/data/vocab_encoder.json",
+                    help="Path to vocab encoder JSON (default: src/data/vocab_encoder.json)")
+    ap.add_argument("--vocab-merges", default="src/data/vocab_merges.json",
+                    help="Path to vocab merges JSON (default: src/data/vocab_merges.json)")
     ap.add_argument("--beam-width", type=int, default=5,
                     help="Beam width for generation (default: 5)")
 

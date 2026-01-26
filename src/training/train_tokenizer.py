@@ -100,8 +100,8 @@ if __name__ == "__main__":
                         help="0-indexed column indices to extract from TSV (default: 1 3)")
     parser.add_argument("--vocab-size", type=int, default=300,
                         help="Target vocabulary size (default: 300)")
-    parser.add_argument("--output-prefix", default="src/vocab",
-                        help="Output file prefix (default: src/vocab)")
+    parser.add_argument("--output-prefix", default="src/data",
+                        help="Output file prefix (default: src/data)")
     args = parser.parse_args()
 
     if not args.input and not args.tsv:
