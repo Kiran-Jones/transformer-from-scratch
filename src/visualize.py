@@ -363,8 +363,8 @@ def create_demo(generator):
 
 def build_demo(
     model_path="seq2seq_model.pkl",
-    vocab_encoder_path="src/vocab_encoder.json",
-    vocab_merges_path="src/vocab_merges.json",
+    vocab_encoder_path="src/data/vocab_encoder.json",
+    vocab_merges_path="src/data/vocab_merges.json",
 ):
     print("Loading model and tokenizer...")
     model, tokenizer = load_model_and_tokenizer(model_path, vocab_encoder_path, vocab_merges_path)
@@ -379,10 +379,10 @@ def main():
     parser = argparse.ArgumentParser(description="Launch Gradio demo for attention visualization")
     parser.add_argument("-m", "--model", default="seq2seq_model.pkl",
                         help="Path to model weights file (default: seq2seq_model.pkl)")
-    parser.add_argument("--vocab-encoder", default="src/vocab_encoder.json",
-                        help="Path to vocab encoder JSON (default: src/vocab_encoder.json)")
-    parser.add_argument("--vocab-merges", default="src/vocab_merges.json",
-                        help="Path to vocab merges JSON (default: src/vocab_merges.json)")
+    parser.add_argument("--vocab-encoder", default="src/data/vocab_encoder.json",
+                        help="Path to vocab encoder JSON (default: src/data/vocab_encoder.json)")
+    parser.add_argument("--vocab-merges", default="src/data/vocab_merges.json",
+                        help="Path to vocab merges JSON (default: src/data/vocab_merges.json)")
     parser.add_argument("--share", action="store_true",
                         help="Create a public shareable link")
     parser.add_argument("--port", type=int, default=7860,
