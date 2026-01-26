@@ -1,6 +1,6 @@
 import numpy as np
-from decoder_layer import DecoderLayer
-from layer_norm import LayerNorm
+from .decoder_layer import DecoderLayer
+from .layer_norm import LayerNorm
 
 class Decoder:
     def __init__(self, d_model=512, num_heads=8, d_ff=2048, num_layers=6):

@@ -1,7 +1,7 @@
 
-from sdpa import sdpa, sdpa_backward
-from linear import Linear
 import numpy as np
+from .sdpa import sdpa, sdpa_backward
+from .linear import Linear
 
 class MultiHeadedAttention:
 

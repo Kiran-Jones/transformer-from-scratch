@@ -7,10 +7,16 @@ from pathlib import Path
 
 import sacrebleu
 
-from tokenizer import Tokenizer
-from generator import Generator
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from inference.tokenizer import Tokenizer
+from inference.generator import Generator
 
 from tqdm import tqdm
+
 
 
 def iter_tsv_pairs(path: str):
@@ -39,7 +45,7 @@ def read_tsv_4col_slice(path: str, start_line: int, limit: int | None = None):
         (srcs, refs) where srcs are English sentences, refs are Spanish references
     """
     srcs, refs = [], []
-    current_line = 0
+    current_line = 0  
 
     with open(path, "r", encoding="utf-8") as f:
         for raw in f:
@@ -71,8 +77,8 @@ def read_tsv_4col_slice(path: str, start_line: int, limit: int | None = None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", required=True, help="Full TSV dataset")
-    ap.add_argument("--train-lines", type=int, default=20000,
-                    help="Number of initial lines used for training (default: 20000)")
+    ap.add_argument("--train-lines", type=int, default=0,
+                    help="Number of initial lines used for training (default: 0)")
     ap.add_argument("--test-size", type=int, default=None,
                     help="How many lines after train split to use for test. Default: all remaining.")
     ap.add_argument("--start-at", type=int, default=None,

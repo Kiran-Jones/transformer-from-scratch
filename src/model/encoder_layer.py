@@ -1,11 +1,10 @@
 
 
-from mha import MultiHeadedAttention
-from ff_network import FeedForward
-from layer_norm import LayerNorm
-from dropout import Dropout
-
 import numpy as np
+from .mha import MultiHeadedAttention
+from .ff_network import FeedForward
+from .layer_norm import LayerNorm
+from .dropout import Dropout
 
 
 

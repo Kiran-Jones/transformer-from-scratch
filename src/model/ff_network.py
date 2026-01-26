@@ -1,5 +1,5 @@
 import numpy as np
-from linear import Linear
+from .linear import Linear
 
 class FeedForward:
 

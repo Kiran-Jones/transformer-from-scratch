@@ -8,8 +8,8 @@ matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.size'] = 11
 
 import gradio as gr
-from tokenizer import Tokenizer
-from generator import Generator
+from inference.tokenizer import Tokenizer
+from inference.generator import Generator
 
 # Custom color scheme
 CMAP = 'viridis'

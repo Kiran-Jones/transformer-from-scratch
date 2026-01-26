@@ -1,10 +1,14 @@
 import argparse
 import pickle
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import numpy as np
 from tqdm import tqdm
-from transformer import Transformer
-from tokenizer import Tokenizer
-from optimizer import Adam
+from model.transformer import Transformer
+from inference.tokenizer import Tokenizer
+from training.optimizer import Adam
 
 def load_parallel(filepaths):
     pairs = []
@@ -126,6 +130,21 @@ def train():
 
     if args.resume:
         print(f"Resuming from {args.resume}...")
+        # Add module aliases for pickle compatibility with old model paths
+        import model as model_pkg
+        sys.modules['transformer'] = model_pkg.transformer
+        sys.modules['encoder'] = model_pkg.encoder
+        sys.modules['decoder'] = model_pkg.decoder
+        sys.modules['encoder_layer'] = model_pkg.encoder_layer
+        sys.modules['decoder_layer'] = model_pkg.decoder_layer
+        sys.modules['mha'] = model_pkg.mha
+        sys.modules['sdpa'] = model_pkg.sdpa
+        sys.modules['embedding'] = model_pkg.embedding
+        sys.modules['linear'] = model_pkg.linear
+        sys.modules['layer_norm'] = model_pkg.layer_norm
+        sys.modules['ff_network'] = model_pkg.ff_network
+        sys.modules['dropout'] = model_pkg.dropout
+        sys.modules['pe'] = model_pkg.pe
         with open(args.resume, "rb") as f:
             model = pickle.load(f)
     else:

@@ -1,7 +1,7 @@
 
 
 import numpy as np
-from utils import softmax
+from .utils import softmax
 
 def sdpa(Q: np.ndarray, K: np.ndarray, V: np.ndarray, mask=None, return_weights=False) -> np.ndarray:
     assert type(Q) == np.ndarray

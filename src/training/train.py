@@ -1,9 +1,13 @@
 import argparse
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import numpy as np
 from tqdm import tqdm
-from transformer import Transformer
-from tokenizer import Tokenizer
-from optimizer import Adam
+from model.transformer import Transformer
+from inference.tokenizer import Tokenizer
+from training.optimizer import Adam
 
 
 def parse_args():

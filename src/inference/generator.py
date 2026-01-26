@@ -1,8 +1,8 @@
 
 import numpy as np
-from pe import positional_encoding
-from masks import create_padding_mask, create_look_ahead_mask
-from utils import softmax
+from model.pe import positional_encoding
+from model.masks import create_padding_mask, create_look_ahead_mask
+from model.utils import softmax
 
 class Generator:
     def __init__(self, model, tokenizer):

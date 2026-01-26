@@ -1,11 +1,11 @@
 import numpy as np
-from embedding import Embedding
-from encoder import Encoder
-from decoder import Decoder
-from linear import Linear
-from dropout import Dropout
-from pe import positional_encoding
-from masks import create_padding_mask, create_look_ahead_mask
+from .embedding import Embedding
+from .encoder import Encoder
+from .decoder import Decoder
+from .linear import Linear
+from .dropout import Dropout
+from .pe import positional_encoding
+from .masks import create_padding_mask, create_look_ahead_mask
 
 def create_padding_mask(seq, pad_id=0):
     # 1 = keep, 0 = mask (pad)

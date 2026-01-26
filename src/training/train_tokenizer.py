@@ -1,9 +1,13 @@
 import argparse
 import json
 import os
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import regex as re
 from collections import Counter
-from tokenizer import Tokenizer
+from inference.tokenizer import Tokenizer
 
 
 def get_stats(vocab):
